@@ -1,0 +1,82 @@
+import pandas as pd
+import numpy as np
+
+data = pd.read_csv('adult.csv')
+
+data = pd.DataFrame(data)
+
+# Calculate the number people by different races
+print(data.groupby(['race']).size())
+
+#Average age by gender
+data.groupby('sex',as_index=False).age.mean()
+
+#The percentage of people have a Bachelor's degree
+education_total = data.groupby(['education']).agg(count)
+print(data.groupby(['education']).size())
+
+#Calculate the percentage of people have Bachelor degree
+education_percentage = data.groupby(['education']).size()/len(data)*100
+education_percentage=pd.DataFrame(education_percentage)
+education_percentage.columns=['percentage']
+print(education_percentage)
+
+#Calculate the percentage of people have advanced degree have income greater than 50k
+
+ a = len(data.loc[(data["education"]== 'Bachelors') & (data["income"]==">50K")])
+ b = len(data.loc[(data["education"]== 'Masters') & (data["income"]==">50K")])
+ c = len(data.loc[(data["education"]== 'Doctorate') & (data["income"]==">50K")])
+
+ d = len(data.loc[(data["education"]== 'Bachelors')])
+ e = len(data.loc[(data["education"]== 'Masters')])
+ f = len(data.loc[(data["education"]== 'Doctorate')])
+ total = a+b+c
+ Total_percent = 100* total/(d+e+f)
+
+
+
+
+#percentage of people make over 50k without higher education
+ Without_edu = len(data)-d-e-f
+ inc_over_without = len(data.loc[(data['income'] == ">50K")]) - a - b - c
+ without_percent = 100* inc_over_without/Without_edu
+
+#minimum working hour
+ Min_hour_work =  np.min(data['hours.per.week'])
+
+#Minimum working hour with income higher than 50k
+ Min_hour_work_High =  len(data.loc[(data['hours.per.week']==Min_hour_work) & (data["income"]==">50K")])
+ Percent_min_hour_wrok = 100* Min_hour_work_High/len(data.loc[data['hours.per.week']==Min_hour_work])
+
+#What country has the highest percentage of people that earn >50K and what is that percentage?
+country = data.groupby(['native.country']).size()
+country = pd.DataFrame(country)
+data.groupby(['education']).size()
+data['High income'] = np.where(data['income']==">50K",1,0)
+High_in_country =data.groupby('native.country')['High income'].sum()
+High_in_country = pd.DataFrame(High_in_country)
+
+M = pd.concat([country,High_in_country], axis=1).reindex(country.index)
+country_percent = 100* M.iloc[:,1]/M.iloc[:,0]
+country_percent = round(country_percent,1)
+M = pd.concat([country,High_in_country,country_percent],axis=1).reindex(country.index)
+M.columns =["total","High_in_country","country_percent"]
+print(M[M.country_percent == M.country_percent.max()])
+
+#Identify the most popular occupation for those who earn >50K in India
+job = data.groupby(['occupation']).size()
+job = pd.DataFrame(job)
+data.groupby(['occupation']).size()
+data['High income'] = np.where(data['income']==">50K",1,0)
+High_in_occupation=data.groupby('occupation')['High income'].sum()
+High_in_occupation = pd.DataFrame(High_in_occupation)
+
+W = pd.concat([job,High_in_occupation], axis=1).reindex(job.index)
+job_percent = 100* M.iloc[:,1]/M.iloc[:,0]
+job_percent = round(job_percent ,1)
+W = pd.concat([job,High_in_occupation,job_percent],axis=1).reindex(job.index)
+W.columns =["total","High_in_job","job_percent"]
+print(W[W.job_percent == W.job_percent.max()])
+
+
+
